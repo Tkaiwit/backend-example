@@ -10,4 +10,4 @@ start-test:
 	npm run test
 
 start-app:
-	docker-compose -p cat-backend up -d
+	docker-compose -f docker-compose-example.yml -p cat-backend up -d
