@@ -4,6 +4,8 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import configuration from '../../config/configuration'
 import { CatsModule } from '../cats/cats.module'
+import { MongooseModule } from '@nestjs/mongoose'
+
 
 @Module({
   imports: [
@@ -12,6 +14,7 @@ import { CatsModule } from '../cats/cats.module'
       isGlobal: true,
     }),
     CatsModule,
+    MongooseModule.forRoot('mongodb://localhost:27017/dbcats'),
   ],
   providers: [AppService],
   controllers: [AppController],
