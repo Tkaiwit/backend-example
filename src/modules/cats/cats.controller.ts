@@ -1,71 +1,56 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Controller, Delete, Get, Post, Body, HttpStatus, Param, Res, Query, NotFoundException, Put } from '@nestjs/common'
-import { CatsInterface, CatTalkInterface } from './cats.interface'
-import { CreateCatsDTO } from './dto/create-cats.dto'
+import { Controller, Delete, Get, Post, Body, Param, Put } from '@nestjs/common'
 import { CatsService } from './cats.service';
-//import { ValidateObjectId } from '../shared/pipes/validate-object-id.pipe';
 
 @Controller('cats')
 export class CatsController {
 
   constructor(private readonly catsSvc: CatsService) { }
 
-  @Get()
-  async getCats(@Res() res) {
-    const cats = await this.catsSvc.getCats();
-    return res.status(HttpStatus.OK).json(cats);
-  }
-
-  @Get(':catID')
-  async getbyIdCat(@Res() res, @Param('catID',) catID: string) {
-    const lists = await this.catsSvc.getbyIdCat(catID);
-    if (!lists) {
-      throw new NotFoundException('Id does not exist!');
-    }
-    return res.status(HttpStatus.OK).json(lists);
-  }
-
-
   @Post()
-  async addCat(@Res() res, @Body() createCatsDTO: CreateCatsDTO) {
-    const addedCats = await this.catsSvc.addCat(createCatsDTO);
-    return res.status(HttpStatus.OK).json({
-      message: 'Cat has been successfuly added!',
-      cat: addedCats,
-    });
+  async addCat(
+    @Body('title') prodTitle: string,
+    @Body('avatar') prodAvatar: string,
+    @Body('sounds') prodSounds: string,
+  ) {
+    const generatedId = await this.catsSvc.insertCat(
+      prodTitle,
+      prodAvatar,
+      prodSounds,
+    );
+    return { id: generatedId };
   }
 
-  @Put()
+  @Get()
+  async getAllCats() {
+    const cats = await this.catsSvc.getCats();
+    return cats;
+  }
+
+  @Get(':id')
+  getCat(@Param('id') prodId: string) {
+    return this.catsSvc.getSingleCat(prodId);
+  }
+
+  @Put(':id')
   async updateCat(
-    @Res() res,
-    @Query('catID') catID: string,
-    @Body() createCatsDTO: CreateCatsDTO) {
-    const updatedCat = await this.catsSvc.updateCat(catID, createCatsDTO);
-    if (!updatedCat) {
-      throw new NotFoundException('Cat does not exist!');
-    }
-    return res.status(HttpStatus.OK).json({
-      message: 'Cat has been successfully updated!',
-      cat: updatedCat,
-    });
+    @Param('id') prodId: string,
+    @Body('title') prodTitle: string,
+    @Body('avatar') prodAvatar: string,
+    @Body('sounds') prodSounds: string,
+  ) {
+    await this.catsSvc.updateCat(prodId, prodTitle, prodAvatar, prodSounds);
+    return null;
   }
 
-  @Delete()
-  async deleteCat(
-    @Res() res,
-    @Query('catID') catID: string) {
-    const deletedCat = await this.catsSvc.deleteCat(catID);
-    if (!deletedCat) {
-      throw new NotFoundException('Cat Does not exist!');
-    }
-    return res.status(HttpStatus.OK).json({
-      message: 'Cat has been successfully deleted!',
-      cat: deletedCat,
-    });
+  @Delete(':id')
+  async removeCat(@Param('id') prodId: string) {
+    await this.catsSvc.deleteCat(prodId);
+    return null;
   }
 
-  @Get('talks')
-  async getCatTalkMessages(): Promise<CatTalkInterface[]> {
-    return []
-  }
+  // @Get('talks')
+  // async getCatTalkMessages(): Promise<CatTalkInterface[]> {
+  //   return []
+  // }
 }

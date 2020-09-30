@@ -8,10 +8,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api')
   app.useWebSocketAdapter(new RedisIoAdapter(app))
   app.useGlobalPipes(new ValidationPipe())
-  // await app.listen(process.env.PORT)
-  await app.listen(3000)
+  await app.listen(process.env.PORT || 3000)
 
 }
-import { from } from 'rxjs';
 
 bootstrap()

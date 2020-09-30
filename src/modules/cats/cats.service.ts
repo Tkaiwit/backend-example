@@ -1,37 +1,80 @@
-import { Injectable } from '@nestjs/common'
-import { Model } from 'mongoose'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { CatsInterface } from './cats.interface'
-import { CreateCatsDTO } from './dto/create-cats.dto'
+import { Model } from 'mongoose'
+
+import { Cat } from './cats.model';
 
 @Injectable()
 export class CatsService {
-   constructor(@InjectModel('Cat') private readonly catModel: Model<CatsInterface>){}
+    constructor(@InjectModel('Cat') private readonly catModel: Model<Cat>) { }
 
-   async getCats(): Promise<CatsInterface[]> {
-       const cats = await this.catModel.find().exec();
-       return cats;
-   }
+    async insertCat(title: string, avatar: string, sounds: string) {
+        const newCat = new this.catModel({
+            title,
+            avatar,
+            sounds,
+        });
+        const result = await newCat.save();
+        return result.id as string;
+    }
 
-   async getbyIdCat(catID: string): Promise<CatsInterface> {
-        const fetchedCat = await this.catModel
-            .findById(catID)
-            .exec();
-        return fetchedCat;
-   }
+    async getCats() {
+        const cats = await this.catModel.find().exec();
+        return cats.map(prod => ({
+            id: prod.id,
+            title: prod.title,
+            avatar: prod.avatar,
+            sounds: prod.sounds,
+        }));
+    }
 
-   async addCat(createCatsDTO: CreateCatsDTO): Promise<CatsInterface> {
-    const addedCat = await new this.catModel(createCatsDTO);
-    return addedCat.save();
-   }
+    async getSingleCat(catId: string) {
+        const cat = await this.findCat(catId);
+        return {
+            id: cat.id,
+            title: cat.title,
+            avatar: cat.avatar,
+            sounds: cat.sounds,
+        };
+    }
 
-   async updateCat(catID:string, createCatsDTO: CreateCatsDTO): Promise<CatsInterface> {
-    const updatedCat = await this.catModel.findByIdAndUpdate(catID, createCatsDTO, {new: true});
-    return updatedCat;
-   }
+    async updateCat(
+        catId: string,
+        title: string,
+        avatar: string,
+        sounds: string,
+    ) {
+        const updatedCat = await this.findCat(catId);
+        if (title) {
+            updatedCat.title = title;
+        }
+        if (avatar) {
+            updatedCat.avatar = avatar;
+        }
+        if (sounds) {
+            updatedCat.sounds = sounds;
+        }
+        updatedCat.save();
+    }
 
-   async deleteCat(catID:string): Promise<CatsInterface> {
-    const deletedCat = await this.catModel.findByIdAndRemove(catID);
-    return deletedCat;
-   }
+    async deleteCat(catId: string) {
+        const result = await this.catModel.deleteOne({ _id: catId }).exec();
+        if (result.n === 0) {
+            throw new NotFoundException('Could not find product.');
+        }
+    }
+
+    private async findCat(Id: string): Promise<Cat> {
+        let cat;
+        try {
+            cat = await this.catModel.findById(Id).exec();
+        } catch (error) {
+            throw new NotFoundException('Could not find product.');
+        }
+        if (!cat) {
+            throw new NotFoundException('Could not find product.');
+        }
+        return cat;
+    }
+
 }

@@ -14,7 +14,7 @@ import { MongooseModule } from '@nestjs/mongoose'
       isGlobal: true,
     }),
     CatsModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/dbcats'),
+    MongooseModule.forRoot('mongodb://localhost:2717/catdb'),
   ],
   providers: [AppService],
   controllers: [AppController],
